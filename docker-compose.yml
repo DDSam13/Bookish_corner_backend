@@ -1,0 +1,103 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: bookish_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: bookish_user
+      POSTGRES_PASSWORD: bookish_password
+      POSTGRES_DB: bookish_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: bookish_rabbitmq
+    restart: always
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+
+  api_gateway:
+    build: ./api_gateway
+    container_name: api_gateway
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    depends_on:
+      - auth_service
+      - library_service
+      - progress_service
+      - tracker_service
+      - metadata_service
+      - recommendation_service
+
+  auth_service:
+    build: ./auth_service
+    container_name: auth_service
+    ports:
+      - "8001:8001"
+    env_file:
+      - .env
+    depends_on:
+      - postgres
+
+  library_service:
+    build: ./library_service
+    container_name: library_service
+    ports:
+      - "8002:8002"
+    env_file:
+      - .env
+    depends_on:
+      - postgres
+
+  progress_service:
+    build: ./progress_service
+    container_name: progress_service
+    ports:
+      - "8003:8003"
+    env_file:
+      - .env
+    depends_on:
+      - postgres
+      - rabbitmq
+
+  tracker_service:
+    build: ./tracker_service
+    container_name: tracker_service
+    ports:
+      - "8004:8004"
+    env_file:
+      - .env
+    depends_on:
+      - postgres
+      - rabbitmq
+
+  metadata_service:
+    build: ./metadata_service
+    container_name: metadata_service
+    ports:
+      - "8005:8005"
+    env_file:
+      - .env
+    depends_on:
+      - postgres
+
+  recommendation_service:
+    build: ./recommendation_service
+    container_name: recommendation_service
+    ports:
+      - "8006:8006"
+    env_file:
+      - .env
+    depends_on:
+      - postgres
+      - library_service
+      - metadata_service
+
+volumes:
+  postgres_data:

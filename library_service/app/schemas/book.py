@@ -1,0 +1,24 @@
+from uuid import UUID
+
+from pydantic import BaseModel
+
+
+class BookCreate(BaseModel):
+    title: str
+    description: str | None = None
+    cover_url: str | None = None
+    page_count: int | None = None
+    language: str | None = None
+
+    author_name: str
+    genre_name: str
+
+
+class BookResponse(BaseModel):
+    id: UUID
+    title: str
+    description: str | None
+    cover_url: str | None
+
+    class Config:
+        from_attributes = True

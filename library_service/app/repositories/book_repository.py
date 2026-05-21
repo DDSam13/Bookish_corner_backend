@@ -1,0 +1,51 @@
+from sqlalchemy.orm import Session
+
+from ..models.book import Author, Book, Genre
+
+
+class BookRepository:
+    def __init__(self, db: Session):
+        self.db = db
+
+    def get_all_books(self):
+        return self.db.query(Book).all()
+
+    def create_book(self, data):
+        author = (
+            self.db.query(Author)
+            .filter(Author.name == data.author_name)
+            .first()
+        )
+
+        if not author:
+            author = Author(name=data.author_name)
+            self.db.add(author)
+            self.db.flush()
+
+        genre = (
+            self.db.query(Genre)
+            .filter(Genre.name == data.genre_name)
+            .first()
+        )
+
+        if not genre:
+            genre = Genre(name=data.genre_name)
+            self.db.add(genre)
+            self.db.flush()
+
+        book = Book(
+            title=data.title,
+            description=data.description,
+            cover_url=data.cover_url,
+            page_count=data.page_count,
+            language=data.language,
+            author_id=author.id,
+            genre_id=genre.id,
+        )
+
+        self.db.add(book)
+
+        self.db.commit()
+        self.db.refresh(book)
+
+        return book
