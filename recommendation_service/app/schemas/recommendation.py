@@ -19,7 +19,7 @@ class SourceBook(BaseModel):
 
 class RecommendationRequest(BaseModel):
     user_id: UUID
-    source_book: SourceBook
+    book_id: UUID
     mode: RecommendationMode
     count: int = Field(default=5, ge=1, le=10)
 

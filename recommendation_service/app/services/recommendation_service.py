@@ -8,6 +8,7 @@ from ..schemas.recommendation import (
     RecommendedBook,
 )
 from .gigachat_client import GigaChatClient
+from .library_client import LibraryClient
 from .llm_response_validator import LLMResponseValidator
 from .prompt_builder import PromptBuilder
 
@@ -16,15 +17,16 @@ class RecommendationService:
     def __init__(self, db: Session):
         self.repository = RecommendationRepository(db)
         self.gigachat = GigaChatClient()
+        self.library_client = LibraryClient()
 
     async def generate_recommendations(
         self,
         data: RecommendationRequest,
+        authorization: str | None = None,
     ) -> RecommendationResponse:
         cached = self.repository.get_cached(
             user_id=data.user_id,
-            source_title=data.source_book.title,
-            source_author=data.source_book.author,
+            book_id=data.book_id,
             mode=data.mode.value,
         )
 
@@ -34,13 +36,27 @@ class RecommendationService:
                 for item in cached.recommendations
             ]
 
+            source_book = await self.library_client.get_book_by_id(
+                str(data.book_id),
+                authorization=authorization,
+            )
+
             return RecommendationResponse(
-                source_book=data.source_book,
+                source_book=source_book,
                 mode=data.mode,
                 recommendations=recommendations,
             )
 
-        prompt = PromptBuilder.build_prompt(data)
+        source_book = await self.library_client.get_book_by_id(
+            str(data.book_id),
+            authorization=authorization,
+        )
+
+        prompt = PromptBuilder.build_prompt(
+            book=source_book,
+            mode=data.mode,
+            count=data.count,
+        )
 
         try:
             raw_response = await self.gigachat.generate(prompt)
@@ -67,12 +83,13 @@ class RecommendationService:
 
             self.repository.save_cache(
                 data=data,
+                source_book=source_book,
                 prompt=prompt,
                 recommendations=serialized_recommendations,
             )
 
             return RecommendationResponse(
-                source_book=data.source_book,
+                source_book=source_book,
                 mode=data.mode,
                 recommendations=recommendations,
             )

@@ -1,11 +1,13 @@
-from ..schemas.recommendation import RecommendationMode, RecommendationRequest
+from ..schemas.recommendation import RecommendationMode, SourceBook
 
 
 class PromptBuilder:
     @staticmethod
-    def build_prompt(data: RecommendationRequest) -> str:
-        book = data.source_book
-
+    def build_prompt(
+        book: SourceBook,
+        mode: RecommendationMode,
+        count: int,
+    ) -> str:
         base = f"""
 Ты — рекомендательная система для приложения электронных и аудиокниг.
 
@@ -26,7 +28,7 @@ class PromptBuilder:
 }}
 
 Правила:
-- Верни ровно {data.count} книг.
+- Верни ровно {count} книг.
 - Не возвращай исходную книгу.
 - Не выдумывай несуществующие книги.
 - У каждой книги обязательно должны быть title, author, reason, similarity_type, confidence, search_query.
@@ -43,13 +45,13 @@ class PromptBuilder:
 Описание/аннотация: {book.description or "не указано"}
 """
 
-        if data.mode == RecommendationMode.SAME_GENRE:
+        if mode == RecommendationMode.SAME_GENRE:
             task = """
 Задача:
 Подбери книги в том же или максимально близком жанре.
 Главный критерий — жанровое сходство.
 """
-        elif data.mode == RecommendationMode.AUTHOR_STYLE:
+        elif mode == RecommendationMode.AUTHOR_STYLE:
             task = """
 Задача:
 Подбери книги, похожие по стилю автора.

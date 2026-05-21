@@ -49,3 +49,10 @@ class BookRepository:
         self.db.refresh(book)
 
         return book
+
+    def get_book_by_id(self, book_id):
+        return (
+            self.db.query(Book)
+            .filter(Book.id == book_id)
+            .first()
+        )

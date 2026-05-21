@@ -9,23 +9,23 @@ class RecommendationRepository:
     def __init__(self, db: Session):
         self.db = db
 
-    def get_cached(self, user_id, source_title: str, source_author: str | None, mode: str):
+    def get_cached(self, user_id, book_id, mode: str):
         return (
             self.db.query(RecommendationCache)
             .filter(
                 RecommendationCache.user_id == user_id,
-                RecommendationCache.source_title == source_title,
-                RecommendationCache.source_author == source_author,
+                RecommendationCache.book_id == book_id,
                 RecommendationCache.mode == mode,
             )
             .first()
         )
 
-    def save_cache(self, data, prompt: str, recommendations: list[dict]):
+    def save_cache(self, data, source_book, prompt: str, recommendations: list[dict]):
         cache = RecommendationCache(
             user_id=data.user_id,
-            source_title=data.source_book.title,
-            source_author=data.source_book.author,
+            book_id=data.book_id,
+            source_title=source_book.title,
+            source_author=source_book.author,
             mode=data.mode.value,
             prompt=prompt,
             recommendations=recommendations,

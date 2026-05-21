@@ -19,6 +19,11 @@ class BookResponse(BaseModel):
     title: str
     description: str | None
     cover_url: str | None
+    page_count: int | None
+    language: str | None
+
+    author_name: str | None = None
+    genre_name: str | None = None
 
     class Config:
         from_attributes = True

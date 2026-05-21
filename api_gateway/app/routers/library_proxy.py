@@ -45,3 +45,17 @@ async def create_book(
             "Authorization": authorization,
         },
     )
+
+@router.get("/books/{book_id}")
+async def get_book_by_id(
+    book_id: str,
+    authorization: str = Header(default=None),
+    payload=Depends(verify_jwt_token),
+):
+    return await ProxyService().forward_request(
+        method="GET",
+        url=f"{settings.library_service_url}/books/{book_id}",
+        headers={
+            "Authorization": authorization,
+        },
+    )
