@@ -13,6 +13,15 @@ class BookCreate(BaseModel):
     author_name: str
     genre_name: str
 
+class BookUpdate(BaseModel):
+    title: str | None = None
+    description: str | None = None
+    cover_url: str | None = None
+    page_count: int | None = None
+    language: str | None = None
+
+    author_name: str | None = None
+    genre_name: str | None = None
 
 class BookResponse(BaseModel):
     id: UUID
@@ -21,7 +30,6 @@ class BookResponse(BaseModel):
     cover_url: str | None
     page_count: int | None
     language: str | None
-
     author_name: str | None = None
     genre_name: str | None = None
 

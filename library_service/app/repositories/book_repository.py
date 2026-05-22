@@ -56,3 +56,39 @@ class BookRepository:
             .filter(Book.id == book_id)
             .first()
         )
+
+    def get_book_by_id(self, book_id):
+        return self.db.query(Book).filter(Book.id == book_id).first()
+
+    def update_book(self, book: Book, data):
+        update_data = data.model_dump(exclude_unset=True)
+
+        author_name = update_data.pop("author_name", None)
+        genre_name = update_data.pop("genre_name", None)
+
+        for key, value in update_data.items():
+            setattr(book, key, value)
+
+        if author_name:
+            author = self.db.query(Author).filter(Author.name == author_name).first()
+            if not author:
+                author = Author(name=author_name)
+                self.db.add(author)
+                self.db.flush()
+            book.author_id = author.id
+
+        if genre_name:
+            genre = self.db.query(Genre).filter(Genre.name == genre_name).first()
+            if not genre:
+                genre = Genre(name=genre_name)
+                self.db.add(genre)
+                self.db.flush()
+            book.genre_id = genre.id
+
+        self.db.commit()
+        self.db.refresh(book)
+        return book
+
+    def delete_book(self, book: Book):
+        self.db.delete(book)
+        self.db.commit()

@@ -59,3 +59,32 @@ async def get_book_by_id(
             "Authorization": authorization,
         },
     )
+
+@router.patch("/books/{book_id}")
+async def update_book(
+    book_id: str,
+    request: Request,
+    authorization: str = Header(default=None),
+    payload=Depends(verify_jwt_token),
+):
+    body = await request.json()
+
+    return await ProxyService().forward_request(
+        method="PATCH",
+        url=f"{settings.library_service_url}/books/{book_id}",
+        json=body,
+        headers={"Authorization": authorization},
+    )
+
+
+@router.delete("/books/{book_id}")
+async def delete_book(
+    book_id: str,
+    authorization: str = Header(default=None),
+    payload=Depends(verify_jwt_token),
+):
+    return await ProxyService().forward_request(
+        method="DELETE",
+        url=f"{settings.library_service_url}/books/{book_id}",
+        headers={"Authorization": authorization},
+    )
