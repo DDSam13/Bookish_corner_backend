@@ -29,3 +29,13 @@ async def login(request: Request):
         url=f"{settings.auth_service_url}/auth/login",
         json=body,
     )
+
+@router.post("/refresh")
+async def refresh(request: Request):
+    body = await request.json()
+
+    return await ProxyService().forward_request(
+        method="POST",
+        url=f"{settings.auth_service_url}/auth/refresh",
+        json=body,
+    )

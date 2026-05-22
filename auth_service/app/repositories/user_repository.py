@@ -27,3 +27,10 @@ class UserRepository:
         self.db.commit()
         self.db.refresh(user)
         return user
+
+    def get_all_active(self):
+        return (
+            self.db.query(User)
+            .filter(User.is_deleted == False)
+            .all()
+        )
