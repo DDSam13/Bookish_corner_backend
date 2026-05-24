@@ -24,19 +24,7 @@
 
 # Архитектура
 
-```text
-Mobile Client
-       ↓
-API Gateway
-       ↓
-| Auth Service
-| Library Service
-| Progress Service
-| Tracker Service
-| Metadata Service
-| Recommendation Service
-
-```
+![Architecture](assets/uml_1.png)
 
 Все сервисы взаимодействуют только через HTTP API.
 
