@@ -8,6 +8,7 @@ class Settings(BaseSettings):
     postgres_host: str = "localhost"
     postgres_port: int = 5433
 
+    google_books_api_key: str | None = None
     google_books_api_url: str = "https://www.googleapis.com/books/v1/volumes"
 
     @property
