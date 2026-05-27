@@ -5,7 +5,7 @@ class Settings(BaseSettings):
     postgres_password: str = "bookish_password"
     postgres_db: str = "bookish_db"
     postgres_host: str = "localhost"
-    postgres_port: int = 5432
+    postgres_port: int = 5433
 
     api_gateway_url: str = "http://localhost:8000"
 

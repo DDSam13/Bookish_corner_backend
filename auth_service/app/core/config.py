@@ -5,8 +5,8 @@ class Settings(BaseSettings):
     postgres_user: str = "bookish_user"
     postgres_password: str = "bookish_password"
     postgres_db: str = "bookish_db"
-    postgres_host: str = "postgres"
-    postgres_port: int = 5432
+    postgres_host: str = "localhost"
+    postgres_port: int = 5433
 
     jwt_secret_key: str = "super-secret-key-change-later"
     jwt_algorithm: str = "HS256"
