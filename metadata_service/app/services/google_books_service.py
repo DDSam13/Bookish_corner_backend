@@ -117,7 +117,7 @@ class GoogleBooksService:
             for query in queries:
                 params = {
                     "q": query,
-                    "maxResults": 5,
+                    "maxResults": 10,
                 }
 
                 if settings.google_books_api_key:
@@ -143,27 +143,53 @@ class GoogleBooksService:
                 data = response.json()
                 items = data.get("items", [])
 
+                best_result = None
+                best_score = -1
+
                 for item in items:
                     volume_info = item.get("volumeInfo", {})
                     found_title = volume_info.get("title")
                     found_authors = volume_info.get("authors", [])
 
-                    if is_relevant_result(
-                        requested_title=title,
-                        requested_author=author,
-                        found_title=found_title,
-                        found_authors=found_authors,
+                    if not is_relevant_result(
+                            requested_title=title,
+                            requested_author=author,
+                            found_title=found_title,
+                            found_authors=found_authors,
                     ):
-                        image_links = volume_info.get("imageLinks", {})
+                        continue
 
-                        return {
-                            "title": found_title,
-                            "author": authors_to_string(found_authors),
-                            "description": volume_info.get("description"),
-                            "cover_url": image_links.get("thumbnail"),
-                            "language": volume_info.get("language"),
-                            "page_count": volume_info.get("pageCount"),
-                            "raw_data": volume_info,
-                        }
+                    image_links = volume_info.get("imageLinks", {})
+
+                    score = 0
+
+                    if volume_info.get("description"):
+                        score += 3
+
+                    if image_links.get("thumbnail"):
+                        score += 2
+
+                    if volume_info.get("pageCount"):
+                        score += 1
+
+                    if volume_info.get("language"):
+                        score += 1
+
+                    candidate = {
+                        "title": found_title,
+                        "author": authors_to_string(found_authors),
+                        "description": volume_info.get("description"),
+                        "cover_url": image_links.get("thumbnail"),
+                        "language": volume_info.get("language"),
+                        "page_count": volume_info.get("pageCount"),
+                        "raw_data": volume_info,
+                    }
+
+                    if score > best_score:
+                        best_score = score
+                        best_result = candidate
+
+                if best_result:
+                    return best_result
 
         return None

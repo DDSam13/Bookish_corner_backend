@@ -4,12 +4,14 @@ from sqlalchemy.orm import Session
 from ..repositories.metadata_repository import MetadataRepository
 from ..schemas.metadata import MetadataRequest, MetadataResponse
 from .google_books_service import GoogleBooksService
+from .open_library_service import OpenLibraryService
 
 
 class MetadataService:
     def __init__(self, db: Session):
         self.repository = MetadataRepository(db)
         self.google_books = GoogleBooksService()
+        self.open_library = OpenLibraryService()
 
     def _build_query(self, data: MetadataRequest):
         return f"title={data.title};author={data.author};isbn={data.isbn}"
@@ -36,6 +38,32 @@ class MetadataService:
             author=data.author,
             isbn=data.isbn,
         )
+
+        open_library_metadata = None
+
+        if (
+                not metadata
+                or not metadata.get("description")
+                or len(metadata.get("description") or "") < 120
+                or not metadata.get("cover_url")
+        ):
+            open_library_metadata = await self.open_library.search_book(
+                title=data.title,
+                author=data.author,
+            )
+
+        open_library_metadata = None
+
+        if (
+                not metadata
+                or not metadata.get("description")
+                or len(metadata.get("description") or "") < 120
+                or not metadata.get("cover_url")
+        ):
+            open_library_metadata = await self.open_library.search_book(
+                title=data.title,
+                author=data.author,
+            )
 
         if not metadata:
             raise HTTPException(
