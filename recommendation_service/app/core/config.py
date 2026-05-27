@@ -8,6 +8,7 @@ class Settings(BaseSettings):
     postgres_port: int = 5433
 
     api_gateway_url: str = "http://localhost:8000"
+    metadata_service_url: str = "http://127.0.0.1:8003"
 
     gigachat_auth_key: str = ""
     gigachat_scope: str = "GIGACHAT_API_PERS"

@@ -1,11 +1,11 @@
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 
+from ..core.config import settings
 from ..repositories.recommendation_repository import RecommendationRepository
 from ..schemas.recommendation import (
     RecommendationRequest,
     RecommendationResponse,
-    RecommendedBook,
 )
 from .gigachat_client import GigaChatClient
 from .library_client import LibraryClient
@@ -24,29 +24,6 @@ class RecommendationService:
         data: RecommendationRequest,
         authorization: str | None = None,
     ) -> RecommendationResponse:
-        cached = self.repository.get_cached(
-            user_id=data.user_id,
-            book_id=data.book_id,
-            mode=data.mode.value,
-        )
-
-        if cached:
-            recommendations = [
-                RecommendedBook(**item)
-                for item in cached.recommendations
-            ]
-
-            source_book = await self.library_client.get_book_by_id(
-                str(data.book_id),
-                authorization=authorization,
-            )
-
-            return RecommendationResponse(
-                source_book=source_book,
-                mode=data.mode,
-                recommendations=recommendations,
-            )
-
         source_book = await self.library_client.get_book_by_id(
             str(data.book_id),
             authorization=authorization,
@@ -61,15 +38,15 @@ class RecommendationService:
         try:
             raw_response = await self.gigachat.generate(prompt)
 
-            recommendations = LLMResponseValidator.validate(raw_response)
+            print("\n========== RAW GIGACHAT RESPONSE ==========")
+            print(raw_response)
+            print("==========================================\n")
 
-            recommendations = recommendations[: data.count]
-
-            if len(recommendations) < data.count:
-                raise HTTPException(
-                    status_code=status.HTTP_502_BAD_GATEWAY,
-                    detail="GigaChat вернул меньше рекомендаций, чем требуется",
-                )
+            recommendations = await LLMResponseValidator.validate_with_metadata(
+                content=raw_response,
+                metadata_service_url=settings.metadata_service_url,
+                count=data.count,
+            )
 
             serialized_recommendations = [
                 item.model_dump()
