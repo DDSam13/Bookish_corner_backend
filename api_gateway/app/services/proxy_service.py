@@ -9,7 +9,7 @@ class ProxyService:
         json: dict | None = None,
         headers: dict | None = None,
     ):
-        async with httpx.AsyncClient() as client:
+        async with httpx.AsyncClient(timeout=300) as client:
             response = await client.request(
                 method=method,
                 url=url,
